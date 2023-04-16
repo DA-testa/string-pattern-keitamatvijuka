@@ -1,32 +1,46 @@
-# python3
+#Keita Matvijuka 13. Grupa 221RDB506
 
-def read_input():
-    # this function needs to aquire input both from keyboard and file
-    # as before, use capital i (input from keyboard) and capital f (input from file) to choose which input type will follow
-    
-    
-    # after input type choice
-    # read two lines 
-    # first line is pattern 
-    # second line is text in which to look for pattern 
-    
-    # return both lines in one return
-    
-    # this is the sample return, notice the rstrip function
-    return (input().rstrip(), input().rstrip())
+import sys
 
-def print_occurrences(output):
-    # this function should control output, it doesn't need any return
+def acquire_input():
+    user_input = input().strip().upper()
+    if user_input == "I":
+        pattern = input().strip()
+        text = input().strip()
+    elif user_input == "F":
+        filename = 'tests/06'
+        try:
+            with open(filename) as file:
+                pattern = file.readline().strip()
+                text = file.readline().strip()
+        except FileNotFoundError:
+            print("Error: file not found")
+            sys.exit(1)
+    else:
+        print("Error: invalid input choice")
+        sys.exit(1)
+    return user_input, pattern, text
+
+def display_occurrences(output):
     print(' '.join(map(str, output)))
 
-def get_occurrences(pattern, text):
-    # this function should find the occurances using Rabin Karp alghoritm 
+def find_occurrences(user_input, pattern, text):
+    text_len = len(text)
+    pattern_len = len(pattern)
+    prime = 31
+    prime_powers = [pow(prime, i) for i in range(pattern_len)]
+    pattern_hash_value = sum([ord(pattern[i]) * prime_powers[pattern_len - 1 - i] for i in range(pattern_len)])
+    text_hash_value = sum([ord(text[i]) * prime_powers[pattern_len - 1 - i] for i in range(pattern_len)])
+    matched_positions = []
 
-    # and return an iterable variable
-    return [0]
+    for i in range(text_len - pattern_len + 1):
+        if pattern_hash_value == text_hash_value:
+            if pattern == text[i:i + pattern_len]:
+                matched_positions.append(i)
+        if i < text_len - pattern_len:
+            text_hash_value = (text_hash_value - ord(text[i]) * prime_powers[pattern_len - 1]) * prime + ord(text[i + pattern_len])
 
+    return matched_positions
 
-# this part launches the functions
 if __name__ == '__main__':
-    print_occurrences(get_occurrences(*read_input()))
-
+    display_occurrences(find_occurrences(*acquire_input()))
