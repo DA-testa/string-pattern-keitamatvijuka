@@ -1,46 +1,44 @@
-# python3
-from hashlib import sha1
+import sys
 
-def read_input():
-    # this function needs to acquire input both from keyboard and file
-    input_type = input("Enter 'I' for input from keyboard or 'F' for input from file: ").upper().strip()
-    if input_type == 'I':
-        return (input().rstrip(), input().rstrip())
-    elif input_type == 'F':
-        file_name = input("Enter the file name: ").strip()
-        with open(file_name, "r") as file:
-            pattern = file.readline().rstrip()
-            text = file.readline().rstrip()
-            return (pattern, text)
+def acquire_input():
+    user_input = input().strip().upper()
+    if user_input == "I":
+        pattern = input().strip()
+        text = input().strip()
+    elif user_input == "F":
+        filename = 'tests/06'
+        try:
+            with open(filename) as file:
+                pattern = file.readline().strip()
+                text = file.readline().strip()
+        except FileNotFoundError:
+            print("Error: file not found")
+            sys.exit(1)
     else:
-        raise ValueError("Invalid input type")
+        print("Error: invalid input choice")
+        sys.exit(1)
+    return user_input, pattern, text
 
-def print_occurrences(output):
-    # this function should control output, it doesn't need any return
+def display_occurrences(output):
     print(' '.join(map(str, output)))
 
-def hash_function(s):
-    return int(sha1(s.encode()).hexdigest(), 16)
-
-def get_occurrences(pattern, text):
-    # this function should find the occurrences using Rabin Karp algorithm
-    pattern_len = len(pattern)
+def find_occurrences(user_input, pattern, text):
     text_len = len(text)
-    pattern_hash = hash_function(pattern)
-    text_hash = hash_function(text[:pattern_len])
-    occurrences = []
+    pattern_len = len(pattern)
+    prime = 31
+    prime_powers = [pow(prime, i) for i in range(pattern_len)]
+    pattern_hash_value = sum([ord(pattern[i]) * prime_powers[pattern_len - 1 - i] for i in range(pattern_len)])
+    text_hash_value = sum([ord(text[i]) * prime_powers[pattern_len - 1 - i] for i in range(pattern_len)])
+    matched_positions = []
 
     for i in range(text_len - pattern_len + 1):
-        if pattern_hash == text_hash:
-            if text[i:i+pattern_len] == pattern:
-                occurrences.append(i)
+        if pattern_hash_value == text_hash_value:
+            if pattern == text[i:i + pattern_len]:
+                matched_positions.append(i)
         if i < text_len - pattern_len:
-            text_hash = hash_function(text[i+1:i+1+pattern_len])
+            text_hash_value = (text_hash_value - ord(text[i]) * prime_powers[pattern_len - 1]) * prime + ord(text[i + pattern_len])
 
-    return occurrences
+    return matched_positions
 
-# this part launches the functions
 if __name__ == '__main__':
-    print_occurrences(get_occurrences(*read_input()))
-
-
+    display_occurrences(find_occurrences(*acquire_input()))
