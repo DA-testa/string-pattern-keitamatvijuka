@@ -1,3 +1,5 @@
+#Keita Matvijuka 13. Grupa 221RDB506
+
 import sys
 
 def acquire_input():
